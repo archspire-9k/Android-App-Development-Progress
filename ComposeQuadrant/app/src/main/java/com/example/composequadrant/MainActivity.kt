@@ -51,8 +51,8 @@ fun Quadrant(title : String, body: String, color: Color, modifier: Modifier = Mo
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .padding(16.dp)
             .background(color)
+            .padding(16.dp)
     ){
         Text(
             text = title,
