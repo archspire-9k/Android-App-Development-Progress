@@ -7,7 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -64,35 +66,40 @@ fun Quadrant(title : String, body: String, color: Color, modifier: Modifier = Mo
 
 @Composable
 fun ScreenLayout() {
-    Column {
-        Row(Modifier.weight(1f)) {
+    Column(
+        verticalArrangement = Arrangement.Top,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.weight(0.5f)
+        ) {
             Quadrant(
                 "Text composable",
                 "Displays text and follows the recommended Material Design guidelines.",
                 Color(
                     0xFFEADDFF
                 ),
-                Modifier.weight(1f)
+                Modifier.weight(1f).fillMaxHeight()
             )
             Quadrant(
                 "Image composable",
                 "Creates a composable that lays out and draws a given Painter class object.",
                 Color(0xFFD0BCFF),
-                Modifier.weight(1f)
+                Modifier.weight(1f).fillMaxHeight()
             )
         }
-        Row(Modifier.weight(1f)) {
+        Row(Modifier.weight(0.5f)) {
             Quadrant(
                 "Row composable",
                 "A layout composable that places its children in a horizontal sequence.",
                 Color(0xFFB69DF8),
-                Modifier.weight(1f)
+                Modifier.weight(1f).fillMaxHeight()
             )
             Quadrant(
                 "Column composable",
                 "A layout composable that places its children in a vertical sequence.",
                 Color(0xFFF6EDFF),
-                Modifier.weight(1f)
+                Modifier.weight(1f).fillMaxHeight()
             )
         }
     }
