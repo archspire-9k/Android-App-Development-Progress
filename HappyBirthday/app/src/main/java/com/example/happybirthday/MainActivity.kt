@@ -35,7 +35,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.onBackground
                 ) {
-                    GreetingImage(message = getString(R.string.happy_birthday), name = "Jibs", from = "Emma")
+                    GreetingImage(
+                        message = getString(R.string.happy_birthday),
+                        name = "Jibs",
+                        from = stringResource(
+                            id = R.string.signature_text
+                        )
+                    )
                 }
             }
         }
@@ -65,7 +71,7 @@ fun GreetingText(message: String, name: String, from: String, modifier: Modifier
 }
 
 @Composable
-fun GreetingImage(message: String, name: String, from: String, modifier: Modifier = Modifier) {
+fun GreetingImage(message: String, name: String, from: String) {
     val image = painterResource(R.drawable.androidparty)
     //Step 3 create a box to overlap image and texts
     Box {
@@ -91,6 +97,10 @@ fun GreetingImage(message: String, name: String, from: String, modifier: Modifie
 @Composable
 fun GreetingTextPreview() {
     HappyBirthdayTheme {
-        GreetingImage(stringResource(R.string.happy_birthday), "Jibs", stringResource(id = R.string.signature_text))
+        GreetingImage(
+            stringResource(R.string.happy_birthday),
+            "Jibs",
+            stringResource(id = R.string.signature_text)
+        )
     }
 }
