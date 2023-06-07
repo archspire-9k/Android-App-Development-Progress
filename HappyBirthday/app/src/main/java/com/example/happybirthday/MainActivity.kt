@@ -3,7 +3,9 @@ package com.example.happybirthday
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,9 +31,9 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.primaryContainer
+                    color = MaterialTheme.colorScheme.onBackground
                 ) {
-                    GreetingText(message = "Happy birthday", name = "Jibs", from = "Emma")
+                    GreetingImage(message = "Happy birthday", name = "Jibs", from = "Emma")
                 }
             }
         }
@@ -59,6 +62,21 @@ fun GreetingText(message: String, name: String, from: String, modifier: Modifier
     }
 }
 
+@Composable
+fun GreetingImage(message: String, name: String, from: String, modifier: Modifier = Modifier) {
+    val image = painterResource(R.drawable.androidparty)
+    //Step 3 create a box to overlap image and texts
+    Box {
+        Image(painter = image, contentDescription = null)
+        GreetingText(
+            message, name, from,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+        )
+    }
+}
+
 @Preview(
     showBackground = true,
     showSystemUi = true
@@ -66,6 +84,6 @@ fun GreetingText(message: String, name: String, from: String, modifier: Modifier
 @Composable
 fun GreetingTextPreview() {
     HappyBirthdayTheme {
-            GreetingText("Happy birthday", "Jibs", "Emma")
+        GreetingImage("Happy Birthday", "Jibs", "Emma")
     }
 }
