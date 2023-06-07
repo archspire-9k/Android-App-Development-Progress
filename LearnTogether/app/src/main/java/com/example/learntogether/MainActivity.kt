@@ -3,12 +3,14 @@ package com.example.learntogether
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.learntogether.ui.theme.LearnTogetherTheme
 
@@ -22,7 +24,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    HeaderImage()
                 }
             }
         }
@@ -31,15 +33,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun HeaderImage() {
-
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+    val painter = painterResource(R.drawable.bg_compose_background)
+    Image(painter = painter, contentDescription = null, contentScale = ContentScale.FillWidth)
 }
 
 @Preview(
@@ -49,6 +44,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     LearnTogetherTheme {
-        Greeting("Android")
+        HeaderImage()
     }
 }
