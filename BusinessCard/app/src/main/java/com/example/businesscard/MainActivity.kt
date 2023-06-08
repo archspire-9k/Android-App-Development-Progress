@@ -5,11 +5,15 @@ import android.provider.ContactsContract.Profile
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Info
@@ -25,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,7 +43,7 @@ class MainActivity : ComponentActivity() {
             BusinessCardTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().background(Color.DarkGray),
                     color = MaterialTheme.colorScheme.background
                 ) {
 
@@ -68,34 +73,45 @@ fun InfoBox(icon : ImageVector, text: String, modifier: Modifier = Modifier) {
 fun ProfileComponent(modifier : Modifier = Modifier) {
     Column(
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
     ) {
         Image(
-            painter = painterResource(id = R.drawable.android_logo), contentDescription = "Profile Icon")
+            painter = painterResource(id = R.drawable.android_logo),
+            contentDescription = "Profile Icon",
+            modifier = Modifier
+                .size(200.dp)
+                .background(Color(0xff073042)),
+            colorFilter = ColorFilter.tint(Color(0xff3ddb84))
+        )
     }
 }
 
 @Composable
 fun ContactInfo(phone: String, link: String, mail: String, modifier: Modifier = Modifier) {
-    Column(
-        verticalArrangement = Arrangement.Bottom,
-        horizontalAlignment = Alignment.CenterHorizontally) {
         Column(
-            Modifier.padding(bottom = 36.dp)
+            verticalArrangement = Arrangement.Bottom,
+            modifier = modifier.padding(bottom = 36.dp)
         ) {
-            val AppIcons = Icons.Rounded
-            InfoBox(icon = AppIcons.Phone, text = phone)
-            InfoBox(icon = AppIcons.Share, text = link)
-            InfoBox(icon = AppIcons.Email, text = mail)
+            val appIcons = Icons.Rounded
+            InfoBox(icon = appIcons.Phone, text = phone)
+            InfoBox(icon = appIcons.Share, text = link)
+            InfoBox(icon = appIcons.Email, text = mail)
         }
-    }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun GreetingPreview() {
     BusinessCardTheme {
-        ProfileComponent()
-        ContactInfo("123", "github.com", "email@sample.com")
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val weight = Modifier.weight(1f)
+            ProfileComponent(Modifier.weight(2f))
+            ContactInfo("123", "github.com", "email@sample.com", weight)
+        }
     }
 }
