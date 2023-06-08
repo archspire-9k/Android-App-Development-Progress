@@ -1,24 +1,18 @@
 package com.example.businesscard
 
 import android.os.Bundle
-import android.provider.ContactsContract.Profile
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Icon
@@ -32,8 +26,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.businesscard.ui.theme.BusinessCardTheme
 
 class MainActivity : ComponentActivity() {
@@ -44,9 +40,17 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize().background(Color.DarkGray),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.secondary
                 ) {
-
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        val weight = Modifier.weight(1f)
+                        ProfileComponent(Modifier.weight(2f))
+                        ContactInfo("123", "github.com", "email@sample.com", weight)
+                    }
                 }
             }
         }
@@ -84,6 +88,16 @@ fun ProfileComponent(modifier : Modifier = Modifier) {
                 .background(Color(0xff073042)),
             colorFilter = ColorFilter.tint(Color(0xff3ddb84))
         )
+        Text(
+            text = "John Doe",
+            fontSize = 45.sp,
+            lineHeight = 60.sp
+        )
+        Text(
+            text = "Android Developer",
+            fontWeight = FontWeight.Bold,
+            color = Color(0xff096437)
+        )
     }
 }
 
@@ -111,7 +125,7 @@ fun GreetingPreview() {
         ) {
             val weight = Modifier.weight(1f)
             ProfileComponent(Modifier.weight(2f))
-            ContactInfo("123", "github.com", "email@sample.com", weight)
+            ContactInfo("+1 234 931 9865", "github.com/john_doe", "email@sample.com", weight)
         }
     }
 }
