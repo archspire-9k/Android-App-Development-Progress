@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,7 +50,8 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val weight = Modifier.weight(1f)
                         ProfileComponent(Modifier.weight(2f))
-                        ContactInfo("123", "github.com", "email@sample.com", weight)
+                        ContactInfo(stringResource(R.string.phone_number), stringResource(R.string.link), stringResource(
+                            R.string.email), weight)
                     }
                 }
             }
@@ -125,7 +127,8 @@ fun GreetingPreview() {
         ) {
             val weight = Modifier.weight(1f)
             ProfileComponent(Modifier.weight(2f))
-            ContactInfo("+1 234 931 9865", "github.com/john_doe", "email@sample.com", weight)
+            ContactInfo(stringResource(R.string.phone_number), stringResource(R.string.link), stringResource(
+                            R.string.email), weight)
         }
     }
 }
