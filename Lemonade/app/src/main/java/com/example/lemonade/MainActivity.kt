@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -79,10 +81,13 @@ fun ImageAndText(modifier: Modifier = Modifier) {
         Button(
             onClick = {
                 result += 1
-            }) {
+            },
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xffd2e7d4))
+        ) {
             Image(
                 painter = painterResource(imageResource),
-                contentDescription = "lemon_tree"
+                contentDescription = "lemon_tree",
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
