@@ -98,7 +98,13 @@ fun LemonApp() {
         ImageAndText(
             textResource,
             imageResource,
-            { step ++ },
+            {
+                if( step in 1..3 ) {
+                    step ++
+                } else {
+                    step = 1
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
         )
