@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,35 +37,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             LemonadeTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
                     LemonApp()
-                }
             }
         }
     }
 }
 
 @Composable
-fun ImageAndText(modifier: Modifier = Modifier) {
-    var result by remember { mutableStateOf(1) }
-    val imageResource = when (result) {
-        1 -> R.drawable.lemon_tree
-        2 -> R.drawable.lemon_squeeze
-        3 -> R.drawable.lemon_drink
-        else -> {
-            R.drawable.lemon_restart
-        }
-    }
-
-    val textResource = when (result) {
-        1 -> "Tap the lemon tree to select a lemon"
-        2 -> "Keep tapping the lemon to squeeze it"
-        3 -> "Tap the lemonade to drink it"
-        else -> "Tap the empty glass to start again"
-    }
+fun ImageAndText(textResource: String, imageResource: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
 
     Column(
         modifier = modifier,
@@ -79,9 +59,7 @@ fun ImageAndText(modifier: Modifier = Modifier) {
             fontWeight = FontWeight.Bold
         )
         Button(
-            onClick = {
-                result += 1
-            },
+            onClick = onClick,
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xffd2e7d4))
         ) {
@@ -98,8 +76,31 @@ fun ImageAndText(modifier: Modifier = Modifier) {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun LemonApp() {
-    ImageAndText(
-        modifier = Modifier
-            .fillMaxSize()
-    )
+    var step by remember { mutableStateOf(1) }
+    val imageResource = when (step) {
+        1 -> R.drawable.lemon_tree
+        2 -> R.drawable.lemon_squeeze
+        3 -> R.drawable.lemon_drink
+        else -> R.drawable.lemon_restart
+    }
+
+    val textResource = when (step) {
+        1 -> stringResource(R.string.lemon_tree)
+        2 -> stringResource(R.string.lemon_squeeze)
+        3 -> stringResource(R.string.lemon_drink)
+        else -> stringResource(R.string.lemon_restart)
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        ImageAndText(
+            textResource,
+            imageResource,
+            { step ++ },
+            modifier = Modifier
+                .fillMaxSize()
+        )
+    }
 }
