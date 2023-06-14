@@ -78,6 +78,9 @@ fun GameScreen(
 
         GameLayout(
             currentScrambledWord = gameUiState.CurrentScrambleWord,
+            userGuess = gameViewModel.userGuess,
+            onUserGuessChanged = { gameViewModel.updateUserGuess(it) },
+            onKeyboardDone = {},
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
@@ -130,7 +133,7 @@ fun GameStatus(score: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun GameLayout(currentScrambledWord : String, modifier: Modifier = Modifier) {
+fun GameLayout(currentScrambledWord : String, userGuess: String, onUserGuessChanged: (String) -> Unit, onKeyboardDone: () -> Unit, modifier: Modifier = Modifier) {
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
 
     Card(
@@ -162,7 +165,7 @@ fun GameLayout(currentScrambledWord : String, modifier: Modifier = Modifier) {
                 style = typography.titleMedium
             )
             OutlinedTextField(
-                value = "",
+                value = userGuess,
                 singleLine = true,
                 shape = shapes.large,
                 modifier = Modifier.fillMaxWidth(),
@@ -174,7 +177,7 @@ fun GameLayout(currentScrambledWord : String, modifier: Modifier = Modifier) {
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
-                    onDone = { }
+                    onDone = { onKeyboardDone() }
                 )
             )
         }
