@@ -15,6 +15,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.example.cameraxstarter.databinding.ActivityMainBinding
+import com.google.mlkit.vision.common.InputImage
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -40,6 +41,19 @@ private class LuminosityAnalyzer(private val listener: LumaListener) : ImageAnal
         listener(luma)
 
         image.close()
+    }
+}
+private class YourImageAnalyzer : ImageAnalysis.Analyzer {
+    override fun analyze(imageProxy: ImageProxy) {
+        val buffer = imageProxy.planes[0].buffer
+        val image = InputImage.fromByteBuffer(
+            buffer,
+            /* image width */ 480,
+            /* image height */ 360,
+            imageProxy.imageInfo.rotationDegrees,
+            InputImage.IMAGE_FORMAT_NV21 // or IMAGE_FORMAT_YV12
+        )
+        imageProxy.close()
     }
 }
 class MainActivity : AppCompatActivity() {
@@ -108,7 +122,11 @@ class MainActivity : AppCompatActivity() {
                         Log.d(TAG, "Average luminosity: $luma")
                     })
                 }
-
+            val faceAnalyzer = ImageAnalysis.Builder()
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, YourImageAnalyzer())
+                }
             // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
@@ -118,7 +136,7 @@ class MainActivity : AppCompatActivity() {
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageAnalyzer)
+                    this, cameraSelector, preview, imageAnalyzer, faceAnalyzer)
 
             } catch(exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
