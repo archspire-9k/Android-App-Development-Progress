@@ -2,6 +2,7 @@ package com.example.cameraxstarter
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -23,7 +24,8 @@ import com.google.mlkit.vision.facemesh.FaceMeshDetectorOptions
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-@ExperimentalGetImage class MainActivity : AppCompatActivity() {
+@ExperimentalGetImage
+class MainActivity : AppCompatActivity() {
     private lateinit var viewBinding: ActivityMainBinding
 
     private lateinit var cameraExecutor: ExecutorService
@@ -64,10 +66,11 @@ import java.util.concurrent.Executors
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+
         defaultDetector = FaceMeshDetection.getClient(
-            FaceMeshDetectorOptions.Builder()
-                .setUseCase(FaceMeshDetectorOptions.BOUNDING_BOX_ONLY)
-                .build()
+//            FaceMeshDetectorOptions.Builder()
+//                .setUseCase(FaceMeshDetectorOptions.BOUNDING_BOX_ONLY)
+//                .build()
         )
     }
 
@@ -99,11 +102,21 @@ import java.util.concurrent.Executors
                         cameraExecutor
                     ) { imageProxy ->
                         val image = BitmapUtils.getBitmap(imageProxy)
-                        if(image != null ) {
-                            defaultDetector.process(InputImage.fromBitmap(image,0 ))
+                        if (image != null) {
+                            defaultDetector.process(InputImage.fromBitmap(image, 0))
                                 .addOnSuccessListener { result ->
                                     // Task completed successfully
-                                    Log.d(TAG, "The result has arrived, $result")
+                                    if (result != null) {
+                                        for (faceMesh in result) {
+                                            val bounds: Rect = faceMesh.boundingBox
+                                            Log.d(TAG, "$bounds")
+                                            // Gets all points
+                                            val faceMeshpoints = faceMesh.allPoints
+                                            for (faceMeshpoint in faceMeshpoints) {
+                                                Log.d(TAG, "$faceMeshpoint")
+                                            }
+                                        }
+                                    }
                                     imageProxy.close()
                                 }
                                 .addOnFailureListener { e ->
