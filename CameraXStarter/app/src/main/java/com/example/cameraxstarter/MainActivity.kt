@@ -17,12 +17,12 @@ import androidx.core.content.ContextCompat
 import com.example.cameraxstarter.databinding.ActivityMainBinding
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.facemesh.FaceMeshDetection
-import com.google.mlkit.vision.facemesh.FaceMeshDetectorOptions
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 typealias LumaListener = (luma: Double) -> Unit
+private const val TAG = "MLTest"
 
 private class LuminosityAnalyzer(private val listener: LumaListener) : ImageAnalysis.Analyzer {
 
@@ -45,27 +45,42 @@ private class LuminosityAnalyzer(private val listener: LumaListener) : ImageAnal
         image.close()
     }
 }
+private class YourImageAnalyzer : ImageAnalysis.Analyzer {
+    override fun analyze(imageProxy: ImageProxy) {
+        val defaultDetector = FaceMeshDetection.getClient()
+//
+//        val boundingBoxDetector = FaceMeshDetection.getClient(
+//            FaceMeshDetectorOptions.Builder()
+//                .setUseCase(FaceMeshDetectorOptions.BOUNDING_BOX_ONLY)
+//                .build()
+//        )
+        val image = imageFromBuffer(imageProxy.planes[0].buffer, imageProxy.imageInfo.rotationDegrees)
+        val result = defaultDetector.process(image)
+            .addOnSuccessListener { result ->
+                // Task completed successfully
+                Log.d(TAG, "The result has arrived, $result")
+            }
+            .addOnFailureListener { e ->
+                // Task failed with an exception
+                Log.d(TAG, "The result has failed")
+            }
+        imageProxy.close()
+    }
+}
 
-private fun imageFromBuffer(byteBuffer: ByteBuffer, rotationDegrees: Int) {
+private fun imageFromBuffer(byteBuffer: ByteBuffer, rotationDegrees: Int): InputImage {
     // [START set_metadata]
     // TODO How do we document the FrameMetadata developers need to implement?
     // [END set_metadata]
     // [START image_from_buffer]
-    val image = InputImage.fromByteBuffer(
+    // [END image_from_buffer]
+    return InputImage.fromByteBuffer(
         byteBuffer,
         /* image width */ 480,
         /* image height */ 360,
         rotationDegrees,
         InputImage.IMAGE_FORMAT_NV21 // or IMAGE_FORMAT_YV12
     )
-    // [END image_from_buffer]
-}
-
-private class YourImageAnalyzer : ImageAnalysis.Analyzer {
-    override fun analyze(imageProxy: ImageProxy) {
-        imageFromBuffer(imageProxy.planes[0].buffer, imageProxy.imageInfo.rotationDegrees)
-        imageProxy.close()
-    }
 }
 class MainActivity : AppCompatActivity() {
     private lateinit var viewBinding: ActivityMainBinding
@@ -114,13 +129,6 @@ class MainActivity : AppCompatActivity() {
     }
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        val defaultDetector = FaceMeshDetection.getClient()
-
-        val boundingBoxDetector = FaceMeshDetection.getClient(
-            FaceMeshDetectorOptions.Builder()
-                .setUseCase(FaceMeshDetectorOptions.BOUNDING_BOX_ONLY)
-                .build()
-        )
 
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
@@ -146,7 +154,7 @@ class MainActivity : AppCompatActivity() {
                     it.setAnalyzer(cameraExecutor, YourImageAnalyzer())
                 }
             // Select back camera as a default
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
             try {
                 // Unbind use cases before rebinding
@@ -154,7 +162,7 @@ class MainActivity : AppCompatActivity() {
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageAnalyzer, faceAnalyzer)
+                    this, cameraSelector, preview, faceAnalyzer)
 
             } catch(exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
