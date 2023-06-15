@@ -16,6 +16,8 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.example.cameraxstarter.databinding.ActivityMainBinding
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.facemesh.FaceMeshDetection
+import com.google.mlkit.vision.facemesh.FaceMeshDetectorOptions
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -43,16 +45,25 @@ private class LuminosityAnalyzer(private val listener: LumaListener) : ImageAnal
         image.close()
     }
 }
+
+private fun imageFromBuffer(byteBuffer: ByteBuffer, rotationDegrees: Int) {
+    // [START set_metadata]
+    // TODO How do we document the FrameMetadata developers need to implement?
+    // [END set_metadata]
+    // [START image_from_buffer]
+    val image = InputImage.fromByteBuffer(
+        byteBuffer,
+        /* image width */ 480,
+        /* image height */ 360,
+        rotationDegrees,
+        InputImage.IMAGE_FORMAT_NV21 // or IMAGE_FORMAT_YV12
+    )
+    // [END image_from_buffer]
+}
+
 private class YourImageAnalyzer : ImageAnalysis.Analyzer {
     override fun analyze(imageProxy: ImageProxy) {
-        val buffer = imageProxy.planes[0].buffer
-        val image = InputImage.fromByteBuffer(
-            buffer,
-            /* image width */ 480,
-            /* image height */ 360,
-            imageProxy.imageInfo.rotationDegrees,
-            InputImage.IMAGE_FORMAT_NV21 // or IMAGE_FORMAT_YV12
-        )
+        imageFromBuffer(imageProxy.planes[0].buffer, imageProxy.imageInfo.rotationDegrees)
         imageProxy.close()
     }
 }
@@ -103,6 +114,13 @@ class MainActivity : AppCompatActivity() {
     }
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        val defaultDetector = FaceMeshDetection.getClient()
+
+        val boundingBoxDetector = FaceMeshDetection.getClient(
+            FaceMeshDetectorOptions.Builder()
+                .setUseCase(FaceMeshDetectorOptions.BOUNDING_BOX_ONLY)
+                .build()
+        )
 
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
