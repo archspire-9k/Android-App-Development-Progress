@@ -83,7 +83,10 @@ class MainActivity : AppCompatActivity() {
 
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
-
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraExecutor.shutdown()
+    }
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
@@ -132,11 +135,6 @@ class MainActivity : AppCompatActivity() {
         ContextCompat.checkSelfPermission(
             baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraExecutor.shutdown()
     }
 
     companion object {
