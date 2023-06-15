@@ -24,27 +24,6 @@ import java.util.concurrent.Executors
 typealias LumaListener = (luma: Double) -> Unit
 private const val TAG = "MLTest"
 
-private class LuminosityAnalyzer(private val listener: LumaListener) : ImageAnalysis.Analyzer {
-
-    private fun ByteBuffer.toByteArray(): ByteArray {
-        rewind()    // Rewind the buffer to zero
-        val data = ByteArray(remaining())
-        get(data)   // Copy the buffer into a byte array
-        return data // Return the byte array
-    }
-
-    override fun analyze(image: ImageProxy) {
-
-        val buffer = image.planes[0].buffer
-        val data = buffer.toByteArray()
-        val pixels = data.map { it.toInt() and 0xFF }
-        val luma = pixels.average()
-
-        listener(luma)
-
-        image.close()
-    }
-}
 private class YourImageAnalyzer : ImageAnalysis.Analyzer {
     override fun analyze(imageProxy: ImageProxy) {
         val defaultDetector = FaceMeshDetection.getClient()
@@ -58,13 +37,13 @@ private class YourImageAnalyzer : ImageAnalysis.Analyzer {
         val result = defaultDetector.process(image)
             .addOnSuccessListener { result ->
                 // Task completed successfully
-                Log.d(TAG, "The result has arrived, $result")
+                Log.d(TAG, "The result has arrived, ${result.size}")
+                imageProxy.close()
             }
             .addOnFailureListener { e ->
                 // Task failed with an exception
-                Log.d(TAG, "The result has failed")
+                Log.d(TAG, "The result has , $e")
             }
-        imageProxy.close()
     }
 }
 
@@ -141,20 +120,13 @@ class MainActivity : AppCompatActivity() {
                     it.setSurfaceProvider(viewBinding.viewFinder.surfaceProvider)
                 }
 
-            val imageAnalyzer = ImageAnalysis.Builder()
-                .build()
-                .also {
-                    it.setAnalyzer(cameraExecutor, LuminosityAnalyzer { luma ->
-                        Log.d(TAG, "Average luminosity: $luma")
-                    })
-                }
             val faceAnalyzer = ImageAnalysis.Builder()
                 .build()
                 .also {
                     it.setAnalyzer(cameraExecutor, YourImageAnalyzer())
                 }
             // Select back camera as a default
-            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
             try {
                 // Unbind use cases before rebinding
