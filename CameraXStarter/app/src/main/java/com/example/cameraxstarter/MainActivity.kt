@@ -18,9 +18,10 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.example.cameraxstarter.databinding.ActivityMainBinding
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.common.Triangle
 import com.google.mlkit.vision.facemesh.FaceMeshDetection
 import com.google.mlkit.vision.facemesh.FaceMeshDetector
-import com.google.mlkit.vision.facemesh.FaceMeshDetectorOptions
+import com.google.mlkit.vision.facemesh.FaceMeshPoint
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -113,7 +114,15 @@ class MainActivity : AppCompatActivity() {
                                             // Gets all points
                                             val faceMeshpoints = faceMesh.allPoints
                                             for (faceMeshpoint in faceMeshpoints) {
-                                                Log.d(TAG, "$faceMeshpoint")
+                                                val index: Int = faceMeshpoint.index
+                                                val position = faceMeshpoint.position
+                                            }
+
+                                            // Gets triangle info
+                                            val triangles: List<Triangle<FaceMeshPoint>> = faceMesh.allTriangles
+                                            for (triangle in triangles) {
+                                                // 3 Points connecting to each other and representing a triangle area.
+                                                val connectedPoints = triangle.allPoints
                                             }
                                         }
                                     }
