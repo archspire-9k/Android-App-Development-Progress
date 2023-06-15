@@ -9,43 +9,20 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
+import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.example.cameraxstarter.databinding.ActivityMainBinding
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.facemesh.FaceMeshDetection
+import com.google.mlkit.vision.facemesh.FaceMeshDetector
+import com.google.mlkit.vision.facemesh.FaceMeshDetectorOptions
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-
-typealias LumaListener = (luma: Double) -> Unit
-private const val TAG = "MLTest"
-
-private class YourImageAnalyzer : ImageAnalysis.Analyzer {
-    override fun analyze(imageProxy: ImageProxy) {
-        val defaultDetector = FaceMeshDetection.getClient()
-//
-//        val boundingBoxDetector = FaceMeshDetection.getClient(
-//            FaceMeshDetectorOptions.Builder()
-//                .setUseCase(FaceMeshDetectorOptions.BOUNDING_BOX_ONLY)
-//                .build()
-//        )
-        val image = imageFromBuffer(imageProxy.planes[0].buffer, imageProxy.imageInfo.rotationDegrees)
-        val result = defaultDetector.process(image)
-            .addOnSuccessListener { result ->
-                // Task completed successfully
-                Log.d(TAG, "The result has arrived, ${result.size}")
-                imageProxy.close()
-            }
-            .addOnFailureListener { e ->
-                // Task failed with an exception
-                Log.d(TAG, "The result has , $e")
-            }
-    }
-}
 
 private fun imageFromBuffer(byteBuffer: ByteBuffer, rotationDegrees: Int): InputImage {
     // [START set_metadata]
@@ -58,13 +35,15 @@ private fun imageFromBuffer(byteBuffer: ByteBuffer, rotationDegrees: Int): Input
         /* image width */ 480,
         /* image height */ 360,
         rotationDegrees,
-        InputImage.IMAGE_FORMAT_NV21 // or IMAGE_FORMAT_YV12
+        InputImage.IMAGE_FORMAT_NV21
     )
 }
-class MainActivity : AppCompatActivity() {
+
+@ExperimentalGetImage class MainActivity : AppCompatActivity() {
     private lateinit var viewBinding: ActivityMainBinding
 
     private lateinit var cameraExecutor: ExecutorService
+    private lateinit var defaultDetector: FaceMeshDetector
 
     private val activityResultLauncher =
         registerForActivityResult(
@@ -101,17 +80,25 @@ class MainActivity : AppCompatActivity() {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+        defaultDetector = FaceMeshDetection.getClient(
+            FaceMeshDetectorOptions.Builder()
+                .setUseCase(FaceMeshDetectorOptions.BOUNDING_BOX_ONLY)
+                .build()
+        )
     }
+
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
     }
+
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
 
             // Preview
             val preview = Preview.Builder()
@@ -121,12 +108,29 @@ class MainActivity : AppCompatActivity() {
                 }
 
             val faceAnalyzer = ImageAnalysis.Builder()
+                .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .also {
-                    it.setAnalyzer(cameraExecutor, YourImageAnalyzer())
+                    it.setAnalyzer(
+                        cameraExecutor
+                    ) { imageProxy ->
+                        val image = BitmapUtils.getBitmap(imageProxy)
+                        if(image != null ) {
+                            defaultDetector.process(InputImage.fromBitmap(image, 0))
+                                .addOnSuccessListener { result ->
+                                    // Task completed successfully
+                                    Log.d(TAG, "The result has arrived, ${result?.get(0)}")
+                                    imageProxy.close()
+                                }
+                                .addOnFailureListener { e ->
+                                    // Task failed with an exception
+                                    Log.d(TAG, "The result has , $e")
+                                }
+                        }
+                    }
                 }
             // Select back camera as a default
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
             try {
                 // Unbind use cases before rebinding
@@ -134,9 +138,10 @@ class MainActivity : AppCompatActivity() {
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, faceAnalyzer)
+                    this, cameraSelector, preview, faceAnalyzer
+                )
 
-            } catch(exc: Exception) {
+            } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
             }
 
@@ -155,7 +160,8 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "CameraXApp"
-//        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+
+        //        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private val REQUIRED_PERMISSIONS =
             mutableListOf(
                 Manifest.permission.CAMERA,
