@@ -20,24 +20,8 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.facemesh.FaceMeshDetection
 import com.google.mlkit.vision.facemesh.FaceMeshDetector
 import com.google.mlkit.vision.facemesh.FaceMeshDetectorOptions
-import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-
-private fun imageFromBuffer(byteBuffer: ByteBuffer, rotationDegrees: Int): InputImage {
-    // [START set_metadata]
-    // TODO How do we document the FrameMetadata developers need to implement?
-    // [END set_metadata]
-    // [START image_from_buffer]
-    // [END image_from_buffer]
-    return InputImage.fromByteBuffer(
-        byteBuffer,
-        /* image width */ 480,
-        /* image height */ 360,
-        rotationDegrees,
-        InputImage.IMAGE_FORMAT_NV21
-    )
-}
 
 @ExperimentalGetImage class MainActivity : AppCompatActivity() {
     private lateinit var viewBinding: ActivityMainBinding
@@ -116,10 +100,10 @@ private fun imageFromBuffer(byteBuffer: ByteBuffer, rotationDegrees: Int): Input
                     ) { imageProxy ->
                         val image = BitmapUtils.getBitmap(imageProxy)
                         if(image != null ) {
-                            defaultDetector.process(InputImage.fromBitmap(image, 0))
+                            defaultDetector.process(InputImage.fromBitmap(image,0 ))
                                 .addOnSuccessListener { result ->
                                     // Task completed successfully
-                                    Log.d(TAG, "The result has arrived, ${result?.get(0)}")
+                                    Log.d(TAG, "The result has arrived, $result")
                                     imageProxy.close()
                                 }
                                 .addOnFailureListener { e ->
