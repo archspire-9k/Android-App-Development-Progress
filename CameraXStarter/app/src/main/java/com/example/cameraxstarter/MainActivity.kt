@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var defaultDetector: FaceMeshDetector
+    private var bounds: Rect = Rect(0,0,0,0)
 
     private val activityResultLauncher =
         registerForActivityResult(
@@ -62,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(viewBinding.root)
         val composeView = viewBinding.composeView
         composeView.setContent {
-            CameraView(Modifier.fillMaxSize())
+            CameraView(modifier = Modifier.fillMaxSize())
         }
 
         // Request camera permissions
@@ -115,7 +116,7 @@ class MainActivity : AppCompatActivity() {
                                     // Task completed successfully
                                     if (result != null) {
                                         for (faceMesh in result) {
-                                            val bounds: Rect = faceMesh.boundingBox
+                                            bounds = faceMesh.boundingBox
                                             Log.d(TAG, "$bounds")
                                             // Gets all points
                                             val faceMeshpoints = faceMesh.allPoints
@@ -125,7 +126,8 @@ class MainActivity : AppCompatActivity() {
                                             }
 
                                             // Gets triangle info
-                                            val triangles: List<Triangle<FaceMeshPoint>> = faceMesh.allTriangles
+                                            val triangles: List<Triangle<FaceMeshPoint>> =
+                                                faceMesh.allTriangles
                                             for (triangle in triangles) {
                                                 // 3 Points connecting to each other and representing a triangle area.
                                                 val connectedPoints = triangle.allPoints
