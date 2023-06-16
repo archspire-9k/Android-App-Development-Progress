@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(viewBinding.root)
         val composeView = viewBinding.composeView
         composeView.setContent {
-            CameraView(modifier = Modifier.fillMaxSize())
+            CameraView()
         }
 
         // Request camera permissions
