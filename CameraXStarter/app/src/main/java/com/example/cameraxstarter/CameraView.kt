@@ -9,11 +9,11 @@ import com.example.cameraxstarter.ui.theme.CameraXStarterTheme
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun CameraView(rect: Rect = Rect(0,0,0,0), modifier: Modifier = Modifier) {
+fun CameraView(modifier: Modifier = Modifier, rect: Rect = Rect(0, 0, 0, 0)) {
 
             CameraXStarterTheme {
                 // A surface container using the 'background' color from the theme
-                Canvas(modifier = modifier) {
+                Canvas(modifier = Modifier) {
                     Rect(88, 220, - 360, 585)
                 }
             }
