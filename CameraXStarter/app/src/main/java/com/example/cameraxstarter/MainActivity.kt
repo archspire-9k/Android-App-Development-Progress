@@ -15,6 +15,8 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.example.cameraxstarter.databinding.ActivityMainBinding
 import com.google.mlkit.vision.common.InputImage
@@ -58,6 +60,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
+        val composeView = viewBinding.composeView
+        composeView.setContent {
+            CameraView(Modifier.fillMaxSize())
+        }
 
         // Request camera permissions
         if (allPermissionsGranted()) {
