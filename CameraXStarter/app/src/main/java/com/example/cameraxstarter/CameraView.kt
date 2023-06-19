@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -39,7 +41,7 @@ import kotlin.coroutines.suspendCoroutine
 @ExperimentalGetImage
 @Composable
 fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
-    var bounds = remember { Rect(0, 0, 0, 0) }
+    var bounds by remember { mutableStateOf(Rect(0, 0, 0, 0)) }
     val lensFacing = CameraSelector.LENS_FACING_FRONT
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -104,10 +106,10 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
     }
 
     // 3
-    Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxSize()) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
         AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
         Canvas(
-            Modifier.size(200.dp)
+            Modifier.fillMaxSize()
         ) {
             drawRect(
                 color = Color.Red,
