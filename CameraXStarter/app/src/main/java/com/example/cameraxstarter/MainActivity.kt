@@ -6,72 +6,48 @@ import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.cameraxstarter.databinding.ActivityMainBinding
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.common.Triangle
 import com.google.mlkit.vision.facemesh.FaceMeshDetection
 import com.google.mlkit.vision.facemesh.FaceMeshDetector
-import com.google.mlkit.vision.facemesh.FaceMeshPoint
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-@ExperimentalGetImage
-class MainActivity : AppCompatActivity() {
-    private lateinit var viewBinding: ActivityMainBinding
+@ExperimentalGetImage class MainActivity : ComponentActivity() {
 
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var defaultDetector: FaceMeshDetector
-    private var bounds: Rect = Rect(0,0,0,0)
+    private var shouldShowCamera: MutableState<Boolean> = mutableStateOf(false)
 
-    private val activityResultLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        )
-        { permissions ->
-            // Handle Permission granted/rejected
-            var permissionGranted = true
-            permissions.entries.forEach {
-                if (it.key in REQUIRED_PERMISSIONS && !it.value)
-                    permissionGranted = false
-            }
-            if (!permissionGranted) {
-                Toast.makeText(
-                    baseContext,
-                    "Permission request denied",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                startCamera()
-            }
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.i("kilo", "Permission granted")
+            shouldShowCamera.value = true
+        } else {
+            Log.i("kilo", "Permission denied")
         }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewBinding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(viewBinding.root)
-        val composeView = viewBinding.composeView
-        composeView.setContent {
-            CameraView()
+        setContent {
+            if (shouldShowCamera.value) {
+                CameraView(
+                    executor = cameraExecutor,
+                    defaultDetector = defaultDetector
+                )
+            }
         }
 
-        // Request camera permissions
-        if (allPermissionsGranted()) {
-            startCamera()
-        } else {
-            requestPermissions()
-        }
+        requestCameraPermission()
 
         cameraExecutor = Executors.newSingleThreadExecutor()
 
@@ -82,94 +58,28 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun requestCameraPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                Log.i("kilo", "Permission previously granted")
+                shouldShowCamera.value = true
+            }
+
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.CAMERA
+            ) -> Log.i("kilo", "Show camera permissions dialog")
+
+            else -> requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
-    }
-
-    private fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-
-        cameraProviderFuture.addListener({
-            // Used to bind the lifecycle of cameras to the lifecycle owner
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-
-
-            // Preview
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(viewBinding.viewFinder.surfaceProvider)
-                }
-
-            val faceAnalyzer = ImageAnalysis.Builder()
-                .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
-                .build()
-                .also {
-                    it.setAnalyzer(
-                        cameraExecutor
-                    ) { imageProxy ->
-                        val image = BitmapUtils.getBitmap(imageProxy)
-                        if (image != null) {
-                            defaultDetector.process(InputImage.fromBitmap(image, 0))
-                                .addOnSuccessListener { result ->
-                                    // Task completed successfully
-                                    if (result != null) {
-                                        for (faceMesh in result) {
-                                            bounds = faceMesh.boundingBox
-                                            Log.d(TAG, "$bounds")
-                                            // Gets all points
-                                            val faceMeshpoints = faceMesh.allPoints
-                                            for (faceMeshpoint in faceMeshpoints) {
-                                                val index: Int = faceMeshpoint.index
-                                                val position = faceMeshpoint.position
-                                            }
-
-                                            // Gets triangle info
-                                            val triangles: List<Triangle<FaceMeshPoint>> =
-                                                faceMesh.allTriangles
-                                            for (triangle in triangles) {
-                                                // 3 Points connecting to each other and representing a triangle area.
-                                                val connectedPoints = triangle.allPoints
-                                            }
-                                        }
-                                    }
-                                    imageProxy.close()
-                                }
-                                .addOnFailureListener { e ->
-                                    // Task failed with an exception
-                                    Log.d(TAG, "The result has , $e")
-                                }
-                        }
-                    }
-                }
-            // Select back camera as a default
-            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
-
-            try {
-                // Unbind use cases before rebinding
-                cameraProvider.unbindAll()
-
-                // Bind use cases to camera
-                cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, faceAnalyzer
-                )
-
-            } catch (exc: Exception) {
-                Log.e(TAG, "Use case binding failed", exc)
-            }
-
-        }, ContextCompat.getMainExecutor(this))
-    }
-
-    private fun requestPermissions() {
-        activityResultLauncher.launch(REQUIRED_PERMISSIONS)
-    }
-
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(
-            baseContext, it
-        ) == PackageManager.PERMISSION_GRANTED
     }
 
     companion object {
