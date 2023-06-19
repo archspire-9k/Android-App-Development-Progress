@@ -1,7 +1,10 @@
 package com.example.lemonade
 
+import android.app.ActivityManager
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -36,6 +39,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.lemonade.ui.theme.LemonadeTheme
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,6 +50,20 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 LemonApp()
             }
+        }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+
+        return false
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val activityManager: ActivityManager =
+            getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        if (activityManager.lockTaskModeState == ActivityManager.LOCK_TASK_MODE_NONE) {
+            startLockTask()
         }
     }
 }
@@ -58,7 +77,7 @@ fun ImageAndText(
     modifier: Modifier = Modifier
 ) {
     var count = 0
-    if(step == 2) {
+    if (step == 2) {
         count = (2..4).random()
     }
 
@@ -70,14 +89,13 @@ fun ImageAndText(
     {
         Button(
             onClick = {
-                    if (count > 0) {
-                        count -= 1
-                        Log.d("SQUEEZE COUNT", "$count")
-                    } else {
-                        onClick()
-                    }
+                if (count > 0) {
+                    count -= 1
+                    Log.d("SQUEEZE COUNT", "$count")
+                } else {
+                    onClick()
                 }
-            ,
+            },
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xffd2e7d4))
         ) {
@@ -110,28 +128,29 @@ fun LemonApp() {
         else -> stringResource(R.string.lemon_restart)
     }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "Lemonade",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                colors = TopAppBarDefaults.smallTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        }
-    ) { innerPadding ->
+
+//   Scaffold(
+//        topBar = {
+//            CenterAlignedTopAppBar(
+//                title = {
+//                    Text(
+//                        text = "Lemonade",
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                },
+//                colors = TopAppBarDefaults.smallTopAppBarColors(
+//                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+//                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+//                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+//                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+//                )
+//            )
+//        }
+//    ) { innerPadding ->
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+//                .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.tertiaryContainer),
             color = MaterialTheme.colorScheme.background
         ) {
@@ -151,4 +170,4 @@ fun LemonApp() {
             )
         }
     }
-}
+//}

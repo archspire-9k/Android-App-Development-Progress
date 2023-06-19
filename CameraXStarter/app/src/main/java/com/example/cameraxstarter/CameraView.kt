@@ -61,13 +61,14 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                             if (result != null) {
                                 for (faceMesh in result) {
                                     bounds = faceMesh.boundingBox
-                                    Log.d("FAIL", "$bounds")
+//                                    Log.d("FAIL", "$bounds")
                                     // Gets all points
-//                                    val faceMeshpoints = faceMesh.allPoints
-//                                    for (faceMeshpoint in faceMeshpoints) {
-//                                        val index: Int = faceMeshpoint.index
-//                                        val position = faceMeshpoint.position
-//                                    }
+                                    val faceMeshpoints = faceMesh.allPoints
+                                    for (faceMeshpoint in faceMeshpoints) {
+                                        val index: Int = faceMeshpoint.index
+                                        val position = faceMeshpoint.position
+                                        Log.d("POSITION", "index: $index, pos: $position")
+                                    }
 //
 //                                    // Gets triangle info
 //                                    val triangles: List<Triangle<FaceMeshPoint>> =
