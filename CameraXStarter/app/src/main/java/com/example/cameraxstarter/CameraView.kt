@@ -69,7 +69,7 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                                         val position = faceMeshpoint.position
                                         Log.d("POSITION", "index: $index, pos: $position")
                                     }
-//
+
 //                                    // Gets triangle info
 //                                    val triangles: List<Triangle<FaceMeshPoint>> =
 //                                        faceMesh.allTriangles
@@ -104,11 +104,11 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val configuration = LocalConfiguration.current
-        val screenWidthPx = with(density) { configuration.screenWidthDp.dp.roundToPx() }
-        val screenHeightPx = with(density) { configuration.screenHeightDp.dp.roundToPx() }
-        val scaleHeight: Float = screenHeightPx.toFloat() / 640
-        val scaleWidth: Float = screenWidthPx.toFloat() / 480
-        Log.d("RATIO", "Composable ratio ${screenHeightPx / screenWidthPx.toFloat()}")
+        val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
+        val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+        val scaleHeight: Float = screenHeightPx / 640
+        val scaleWidth: Float = screenWidthPx / 480
+        Log.d("RATIO", "Composable ratio ${screenHeightPx / screenWidthPx}")
         AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
         Canvas(
             Modifier.fillMaxSize()
