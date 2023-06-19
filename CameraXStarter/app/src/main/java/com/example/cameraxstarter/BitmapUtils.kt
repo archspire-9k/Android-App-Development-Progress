@@ -43,7 +43,7 @@ object BitmapUtils {
             image.compressToJpeg(Rect(0, 0, metadata.width, metadata.height), 80, stream)
             val bmp = BitmapFactory.decodeByteArray(stream.toByteArray(), 0, stream.size())
             stream.close()
-            return rotateBitmap(bmp, metadata.rotation)
+            return rotateBitmap(bmp, metadata.rotation, true, false)
         } catch (e: Exception) {
             Log.e("VisionProcessorBase", "Error: " + e.message)
         }
@@ -68,15 +68,15 @@ object BitmapUtils {
 
     /** Rotates a bitmap if it is converted from a bytebuffer.  */
     private fun rotateBitmap(
-        bitmap: Bitmap, rotationDegrees: Int
-    ): Bitmap {
+        bitmap: Bitmap, rotationDegrees: Int, flipX: Boolean, flipY: Boolean
+    ): Bitmap? {
         val matrix = Matrix()
 
         // Rotate the image back to straight.
         matrix.postRotate(rotationDegrees.toFloat())
 
         // Mirror the image along the X or Y axis.
-        matrix.postScale(1.0f, 1.0f)
+        matrix.postScale(if (flipX) -1.0f else 1.0f, if (flipY) -1.0f else 1.0f)
         val rotatedBitmap =
             Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 

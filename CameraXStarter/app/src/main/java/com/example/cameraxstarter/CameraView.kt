@@ -12,7 +12,6 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,15 +24,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.common.Triangle
 import com.google.mlkit.vision.facemesh.FaceMeshDetector
-import com.google.mlkit.vision.facemesh.FaceMeshPoint
 import java.util.concurrent.ExecutorService
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -45,8 +44,9 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
     val lensFacing = CameraSelector.LENS_FACING_FRONT
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-
-    val preview = Preview.Builder().build()
+    val builder = Preview.Builder()
+//    val targetResolution = PreferenceUtils
+    val preview = builder.build()
     val previewView = remember { PreviewView(context) }
     val imageAnalysis: ImageAnalysis = remember {
         ImageAnalysis.Builder().build().also {
@@ -63,24 +63,23 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                                     bounds = faceMesh.boundingBox
                                     Log.d("FAIL", "$bounds")
                                     // Gets all points
-                                    val faceMeshpoints = faceMesh.allPoints
-                                    for (faceMeshpoint in faceMeshpoints) {
-                                        val index: Int = faceMeshpoint.index
-                                        val position = faceMeshpoint.position
-                                    }
-
-                                    // Gets triangle info
-                                    val triangles: List<Triangle<FaceMeshPoint>> =
-                                        faceMesh.allTriangles
-                                    for (triangle in triangles) {
-                                        // 3 Points connecting to each other and representing a triangle area.
-                                        val connectedPoints = triangle.allPoints
-                                    }
+//                                    val faceMeshpoints = faceMesh.allPoints
+//                                    for (faceMeshpoint in faceMeshpoints) {
+//                                        val index: Int = faceMeshpoint.index
+//                                        val position = faceMeshpoint.position
+//                                    }
+//
+//                                    // Gets triangle info
+//                                    val triangles: List<Triangle<FaceMeshPoint>> =
+//                                        faceMesh.allTriangles
+//                                    for (triangle in triangles) {
+//                                        // 3 Points connecting to each other and representing a triangle area.
+//                                        val connectedPoints = triangle.allPoints
+//                                    }
                                 }
                             }
                             imageProxy.close()
-                        }
-                        .addOnFailureListener { e ->
+                        }.addOnFailureListener { e ->
                             // Task failed with an exception
                             Log.d("FAIL", "The result has , $e")
                         }
@@ -88,34 +87,37 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
             }
         }
     }
-    val cameraSelector = CameraSelector.Builder()
-        .requireLensFacing(lensFacing)
-        .build()
+    val cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
 
     // 2
     LaunchedEffect(lensFacing) {
         val cameraProvider = context.getCameraProvider()
         cameraProvider.unbindAll()
         cameraProvider.bindToLifecycle(
-            lifecycleOwner,
-            cameraSelector,
-            preview,
-            imageAnalysis
+            lifecycleOwner, cameraSelector, preview, imageAnalysis
         )
         preview.setSurfaceProvider(previewView.surfaceProvider)
     }
 
     // 3
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+        val density = LocalDensity.current
+        val configuration = LocalConfiguration.current
+        val screenWidthPx = with(density) { configuration.screenWidthDp.dp.roundToPx() }
+        val screenHeightPx = with(density) { configuration.screenHeightDp.dp.roundToPx() }
+        val scaleHeight: Float = screenHeightPx.toFloat() / 640
+        val scaleWidth: Float = screenWidthPx.toFloat() / 480
+        Log.d("RATIO", "Composable ratio ${screenHeightPx / screenWidthPx.toFloat()}")
         AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
         Canvas(
             Modifier.fillMaxSize()
         ) {
             drawRect(
-                color = Color.Red,
-                topLeft = Offset(bounds.left.toFloat(), bounds.top.toFloat()),
-                size = Size(bounds.width().toFloat(), bounds.height().toFloat()),
-                style = Stroke(width = 2f)
+                color = Color.Red, topLeft = Offset(
+                    bounds.left.toFloat() * scaleWidth, bounds.top.toFloat() * scaleHeight
+                ), size = Size(
+                    bounds.width().toFloat() * scaleWidth, bounds.height().toFloat() * scaleHeight
+                ), style = Stroke(width = 2f)
             )
         }
 
