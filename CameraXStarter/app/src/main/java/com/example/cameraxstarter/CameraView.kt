@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -36,11 +37,19 @@ import com.google.mlkit.vision.facemesh.FaceMeshDetector
 import java.util.concurrent.ExecutorService
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.abs
 
 @ExperimentalGetImage
 @Composable
 fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
     var bounds by remember { mutableStateOf(Rect(0, 0, 0, 0)) }
+    var faceMeshpoints by remember {
+        mutableStateOf(listOf(Offset(0f, 0f)))
+    }
+    var screenHeightPx: Float
+    var screenWidthPx: Float
+    var scaleHeight: Float = 1f
+    var scaleWidth: Float = 1f
     val lensFacing = CameraSelector.LENS_FACING_FRONT
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -63,12 +72,13 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                                     bounds = faceMesh.boundingBox
 //                                    Log.d("FAIL", "$bounds")
                                     // Gets all points
-                                    val faceMeshpoints = faceMesh.allPoints
-                                    for (faceMeshpoint in faceMeshpoints) {
-                                        val index: Int = faceMeshpoint.index
-                                        val position = faceMeshpoint.position
-                                        Log.d("POSITION", "index: $index, pos: $position")
+                                    faceMeshpoints = faceMesh.allPoints.map { pair ->
+                                        Offset(
+                                            pair.position.x * scaleWidth * abs(pair.position.z),
+                                            pair.position.y * scaleHeight * abs(pair.position.z)
+                                        )
                                     }
+
 
 //                                    // Gets triangle info
 //                                    val triangles: List<Triangle<FaceMeshPoint>> =
@@ -104,22 +114,31 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val configuration = LocalConfiguration.current
-        val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
-        val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
-        val scaleHeight: Float = screenHeightPx / 640
-        val scaleWidth: Float = screenWidthPx / 480
+        screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
+        screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+        scaleHeight = screenHeightPx / 640
+        scaleWidth = screenWidthPx / 480
         Log.d("RATIO", "Composable ratio ${screenHeightPx / screenWidthPx}")
         AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
+        Log.d("POINTS", "$faceMeshpoints")
         Canvas(
             Modifier.fillMaxSize()
         ) {
             drawRect(
                 color = Color.Red, topLeft = Offset(
-                    bounds.left.toFloat() * scaleWidth, bounds.top.toFloat() * scaleHeight
+                    bounds.left.toFloat() * scaleWidth
+
+                            * 0.84f, bounds.top.toFloat() * scaleHeight * 1.18f
                 ), size = Size(
-                    bounds.width().toFloat() * scaleWidth, bounds.height().toFloat() * scaleHeight
+                    bounds.width().toFloat() * scaleWidth * 1.3f,
+                    bounds.height().toFloat() * scaleHeight * 0.9f
                 ), style = Stroke(width = 2f)
             )
+            faceMeshpoints.forEach {
+                drawCircle(
+                    color = Color.White, radius = 4f, center = it
+                )
+            }
         }
 
     }
