@@ -13,7 +13,10 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,6 +30,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -37,7 +41,6 @@ import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.facemesh.FaceMeshDetector
 import java.lang.Float.max
-import java.lang.Float.min
 import java.util.concurrent.ExecutorService
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -50,8 +53,8 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
         mutableStateOf(listOf(Offset(0f, 0f)))
     }
 
-    var screenHeightPx: Int
-    var screenWidthPx: Int
+    var screenHeightPx: Float
+    var screenWidthPx: Float
     var scaleFactor = 1f
     var scaleHeight: Float
     var scaleWidth: Float
@@ -87,6 +90,7 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                                         bounds = faceMesh.boundingBox
 //                                    Log.d("FAIL", "$bounds")
                                         // Gets all points
+                                        val faceMeshpointsTest = faceMesh.allPoints
                                         faceMeshpoints = faceMesh.allPoints.map { pair ->
                                             Offset(
                                                 pair.position.x * scaleFactor,
@@ -126,29 +130,34 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
     }
 
     // 3
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-        val density = LocalDensity.current
-        val configuration = LocalConfiguration.current
-        screenWidthPx = with(density) { configuration.screenWidthDp.dp.roundToPx() }
-        screenHeightPx = with(density) { configuration.screenHeightDp.dp.roundToPx() }
-        scaleHeight = screenHeightPx * 1f / 640
-        scaleWidth = screenWidthPx * 1f / 480
-        scaleFactor = max(scaleWidth,scaleHeight)
-        Log.d("RATIO", "Composable ratio ${screenHeightPx / screenWidthPx}")
-        AndroidView({ previewView }, modifier = Modifier.fillMaxSize().drawBehind {
-            faceMeshpoints.forEach {
-                drawCircle(
-                    color = Color.White, radius = 4f, center = it
-                )
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .aspectRatio(1f)
+//            .height(with(LocalDensity.current) { 1080.toDp() })
+//            .width(with(LocalDensity.current) { 810.toDp() })
+            .onGloballyPositioned { coordinates ->
+                screenHeightPx = (coordinates.size.height.toFloat())
+                screenWidthPx = coordinates.size.width.toFloat()
+                scaleHeight = screenHeightPx * 1f / 640
+                scaleWidth = screenWidthPx * 1f / 480
+                scaleFactor = max(scaleWidth, scaleHeight)
+                Log.d("RATIO", "Composable ratio $scaleHeight : $scaleWidth")
             }
-        })
-        Log.d("POINTS", "$faceMeshpoints")
+    ) {
+
+        AndroidView(
+            { previewView }, modifier = Modifier
+                .fillMaxSize()
+        )
         Canvas(
             Modifier.fillMaxSize()
         ) {
             drawRect(
                 color = Color.Red, topLeft = Offset(
-                    bounds.left.toFloat(), bounds.top.toFloat()
+                    bounds.left.toFloat()
+                            * scaleFactor, bounds.top.toFloat() * scaleFactor
                 ), size = Size(
                     bounds.width().toFloat() * scaleFactor,
                     bounds.height().toFloat() * scaleFactor
