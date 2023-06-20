@@ -31,7 +31,7 @@ import java.nio.ByteBuffer
 /** Utils functions for bitmap conversions.  */
 object BitmapUtils {
     /** Converts NV21 format byte buffer to bitmap.  */
-    private fun getBitmap(data: ByteBuffer, metadata: FrameMetadata): Bitmap? {
+    private fun getBitmap(data: ByteBuffer, metadata: FrameMetadata, isFrontCamera: Boolean): Bitmap? {
         data.rewind()
         val imageInBuffer = ByteArray(data.limit())
         data[imageInBuffer, 0, imageInBuffer.size]
@@ -43,7 +43,12 @@ object BitmapUtils {
             image.compressToJpeg(Rect(0, 0, metadata.width, metadata.height), 80, stream)
             val bmp = BitmapFactory.decodeByteArray(stream.toByteArray(), 0, stream.size())
             stream.close()
-            return rotateBitmap(bmp, metadata.rotation, true, false)
+            return if(isFrontCamera) rotateBitmap(bmp, metadata.rotation,
+                flipX = true,
+                flipY = false
+            )
+            else rotateBitmap(bmp, metadata.rotation, flipX = false, flipY = false)
+
         } catch (e: Exception) {
             Log.e("VisionProcessorBase", "Error: " + e.message)
         }
@@ -52,7 +57,7 @@ object BitmapUtils {
 
     /** Converts a YUV_420_888 image from CameraX API to a bitmap.  */
     @ExperimentalGetImage
-    fun getBitmap(image: ImageProxy): Bitmap? {
+    fun getBitmap(image: ImageProxy, isFrontCamera: Boolean): Bitmap? {
         val frameMetadata = FrameMetadata.Builder()
             .setWidth(image.width)
             .setHeight(image.height)
@@ -63,7 +68,7 @@ object BitmapUtils {
             image.width,
             image.height
         )
-        return getBitmap(nv21Buffer, frameMetadata)
+        return getBitmap(nv21Buffer, frameMetadata, isFrontCamera)
     }
 
     /** Rotates a bitmap if it is converted from a bytebuffer.  */
