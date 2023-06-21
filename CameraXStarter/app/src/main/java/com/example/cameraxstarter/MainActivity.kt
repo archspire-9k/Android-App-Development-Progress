@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.ExperimentalGetImage
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.facemesh.FaceMeshDetection
@@ -40,7 +41,8 @@ import java.util.concurrent.Executors
             if (shouldShowCamera.value) {
                 CameraView(
                     executor = cameraExecutor,
-                    defaultDetector = defaultDetector
+                    defaultDetector = defaultDetector,
+                    context = LocalContext.current
                 )
             }
         }
@@ -80,5 +82,8 @@ import java.util.concurrent.Executors
         cameraExecutor.shutdown()
     }
 
-
+    override fun onPause() {
+        super.onPause()
+        cameraExecutor.shutdown()
+    }
 }
