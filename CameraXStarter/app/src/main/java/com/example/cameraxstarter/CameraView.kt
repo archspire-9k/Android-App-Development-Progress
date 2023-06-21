@@ -15,8 +15,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,17 +23,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.common.InputImage
@@ -56,15 +51,17 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
     var screenHeightPx: Float
     var screenWidthPx: Float
     var scaleFactor = 1f
-    var scaleHeight: Float
-    var scaleWidth: Float
-    val lensFacing = CameraSelector.LENS_FACING_FRONT
+    var scaleHeight = 1f
+    var scaleWidth = 1f
+    val lensFacing = CameraSelector.LENS_FACING_BACK
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val builder = Preview.Builder()
 //    val targetResolution = PreferenceUtils
-    val preview = builder.setTargetAspectRatio(AspectRatio.RATIO_4_3).build()
+    val preview = builder
+        .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+        .build()
     val previewView = remember { PreviewView(context) }
     val imageAnalysis: ImageAnalysis = remember {
         ImageAnalysis.Builder()
@@ -80,7 +77,7 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                      * detectFace(imageProxy)
                      *}
                      */
-                    val image = BitmapUtils.getBitmap(imageProxy, true)
+                    val image = BitmapUtils.getBitmap(imageProxy, false)
                     if (image != null) {
                         defaultDetector.process(InputImage.fromBitmap(image, 0))
                             .addOnSuccessListener { result ->
@@ -90,11 +87,10 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                                         bounds = faceMesh.boundingBox
 //                                    Log.d("FAIL", "$bounds")
                                         // Gets all points
-                                        val faceMeshpointsTest = faceMesh.allPoints
                                         faceMeshpoints = faceMesh.allPoints.map { pair ->
                                             Offset(
-                                                pair.position.x * scaleFactor,
-                                                pair.position.y * scaleFactor
+                                                pair.position.x * scaleHeight,
+                                                pair.position.y * scaleHeight
                                             )
                                         }
 
@@ -131,17 +127,17 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
 
     // 3
     Box(
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.BottomCenter,
         modifier = Modifier
             .fillMaxSize()
-            .aspectRatio(1f)
+            .aspectRatio(3/4f)
 //            .height(with(LocalDensity.current) { 1080.toDp() })
 //            .width(with(LocalDensity.current) { 810.toDp() })
             .onGloballyPositioned { coordinates ->
-                screenHeightPx = (coordinates.size.height.toFloat())
+                screenHeightPx = coordinates.size.height.toFloat()
                 screenWidthPx = coordinates.size.width.toFloat()
-                scaleHeight = screenHeightPx * 1f / 640
-                scaleWidth = screenWidthPx * 1f / 480
+                scaleHeight = screenHeightPx / 640
+                scaleWidth = screenWidthPx / 480
                 scaleFactor = max(scaleWidth, scaleHeight)
                 Log.d("RATIO", "Composable ratio $scaleHeight : $scaleWidth")
             }
@@ -156,22 +152,20 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
         ) {
             drawRect(
                 color = Color.Red, topLeft = Offset(
-                    bounds.left.toFloat()
-                            * scaleFactor, bounds.top.toFloat() * scaleFactor
+                    bounds.left.toFloat() * scaleFactor, bounds.top.toFloat() * scaleFactor
                 ), size = Size(
                     bounds.width().toFloat() * scaleFactor,
                     bounds.height().toFloat() * scaleFactor
                 ), style = Stroke(width = 2f)
             )
-            faceMeshpoints.forEach {
-                drawCircle(
-                    color = Color.White, radius = 4f, center = it
-                )
-            }
+            drawPoints(
+                points = faceMeshpoints,
+                pointMode = PointMode.Points,
+                color = Color.White,
+                strokeWidth = 4f
+            )
         }
-
     }
-
 
 }
 
