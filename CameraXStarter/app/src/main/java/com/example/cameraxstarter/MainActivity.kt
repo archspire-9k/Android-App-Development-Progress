@@ -2,8 +2,6 @@ package com.example.cameraxstarter
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.Rect
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -16,7 +14,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.facemesh.FaceMeshDetection
 import com.google.mlkit.vision.facemesh.FaceMeshDetector
-import com.google.mlkit.vision.facemesh.FaceMeshDetectorOptions
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
