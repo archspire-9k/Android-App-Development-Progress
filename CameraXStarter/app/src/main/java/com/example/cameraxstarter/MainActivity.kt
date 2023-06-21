@@ -53,9 +53,9 @@ import java.util.concurrent.Executors
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         defaultDetector = FaceMeshDetection.getClient(
-            FaceMeshDetectorOptions.Builder()
-                .setUseCase(FaceMeshDetectorOptions.BOUNDING_BOX_ONLY)
-                .build()
+//            FaceMeshDetectorOptions.Builder()
+//                .setUseCase(FaceMeshDetectorOptions.BOUNDING_BOX_ONLY)
+//                .build()
         )
     }
 

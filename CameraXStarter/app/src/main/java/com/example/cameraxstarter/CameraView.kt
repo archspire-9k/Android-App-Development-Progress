@@ -1,7 +1,6 @@
 package com.example.cameraxstarter
 
 import android.content.Context
-import android.graphics.Rect
 import android.util.Log
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -45,11 +44,6 @@ import kotlin.coroutines.suspendCoroutine
 @Composable
 fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
     var boundsList by remember { mutableStateOf(listOf<FaceMesh>()) }
-    var bounds by remember { mutableStateOf(Rect(0, 0, 0, 0)) }
-    var faceMeshpoints by remember {
-        mutableStateOf(listOf(Offset(0f, 0f)))
-    }
-
     var screenHeightPx: Float
     var screenWidthPx: Float
     var scaleFactor = 1f
@@ -85,16 +79,6 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                                 // Task completed successfully
                                 if (result != null) {
                                     boundsList = result
-                                    for (faceMesh in result) {
-                                        bounds = faceMesh.boundingBox
-                                        faceMeshpoints = faceMesh.allPoints.map { pair ->
-                                            Offset(
-                                                pair.position.x * scaleFactor,
-                                                pair.position.y * scaleFactor
-                                            )
-                                        }
-
-
 //                                    // Gets triangle info
 //                                    val triangles: List<Triangle<FaceMeshPoint>> =
 //                                        faceMesh.allTriangles
@@ -102,7 +86,6 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
 //                                        // 3 Points connecting to each other and representing a triangle area.
 //                                        val connectedPoints = triangle.allPoints
 //                                    }
-                                    }
                                 }
                                 imageProxy.close()
                             }.addOnFailureListener { e ->
@@ -148,23 +131,31 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
         Canvas(
             Modifier.fillMaxSize()
         ) {
-            for(boundPoints in boundsList) {
+            for (boundPoints in boundsList) {
                 val detectedRegion = boundPoints.boundingBox
+                val detectedPointSet = boundPoints.allPoints
                 drawRect(
                     color = Color.Red, topLeft = Offset(
                         detectedRegion.left * scaleFactor, detectedRegion.top * scaleFactor
                     ), size = Size(
-                        bounds.width().toFloat() * scaleFactor,
-                        bounds.height().toFloat() * scaleFactor
+                        detectedRegion.width().toFloat() * scaleFactor,
+                        detectedRegion.height().toFloat() * scaleFactor
                     ), style = Stroke(width = 2f)
                 )
+                val faceMeshpoints = detectedPointSet.map { pair ->
+                    Offset(
+                        pair.position.x * scaleFactor,
+                        pair.position.y * scaleFactor
+                    )
+                }
+                drawPoints(
+                    points = faceMeshpoints,
+                    pointMode = PointMode.Points,
+                    color = Color.White,
+                    strokeWidth = 4f
+                )
             }
-            drawPoints(
-                points = faceMeshpoints,
-                pointMode = PointMode.Points,
-                color = Color.White,
-                strokeWidth = 4f
-            )
+
         }
     }
 
