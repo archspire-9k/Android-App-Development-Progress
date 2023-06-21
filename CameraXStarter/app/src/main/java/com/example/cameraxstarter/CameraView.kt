@@ -130,7 +130,7 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
         contentAlignment = Alignment.BottomCenter,
         modifier = Modifier
             .fillMaxSize()
-            .aspectRatio(3/4f)
+            .aspectRatio(3 / 4f)
             .onGloballyPositioned { coordinates ->
                 screenHeightPx = coordinates.size.height.toFloat()
                 screenWidthPx = coordinates.size.width.toFloat()
@@ -148,14 +148,17 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
         Canvas(
             Modifier.fillMaxSize()
         ) {
-            drawRect(
-                color = Color.Red, topLeft = Offset(
-                    bounds.left.toFloat() * scaleFactor, bounds.top.toFloat() * scaleFactor
-                ), size = Size(
-                    bounds.width().toFloat() * scaleFactor,
-                    bounds.height().toFloat() * scaleFactor
-                ), style = Stroke(width = 2f)
-            )
+            for(boundPoints in boundsList) {
+                val detectedRegion = boundPoints.boundingBox
+                drawRect(
+                    color = Color.Red, topLeft = Offset(
+                        detectedRegion.left * scaleFactor, detectedRegion.top * scaleFactor
+                    ), size = Size(
+                        bounds.width().toFloat() * scaleFactor,
+                        bounds.height().toFloat() * scaleFactor
+                    ), style = Stroke(width = 2f)
+                )
+            }
             drawPoints(
                 points = faceMeshpoints,
                 pointMode = PointMode.Points,
