@@ -138,7 +138,7 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                 val detectedPointSet = boundPoints.allPoints
                 drawRect(
                     color = Color.Red, topLeft = Offset(
-                        detectedRegion.left * scaleFactor, detectedRegion.top * scaleFactor
+                        detectedRegion.left * scaleFactor - 180, detectedRegion.top * scaleFactor
                     ), size = Size(
                         detectedRegion.width().toFloat() * scaleFactor,
                         detectedRegion.height().toFloat() * scaleFactor
@@ -146,7 +146,7 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                 )
                 val faceMeshpoints = detectedPointSet.map { pair ->
                     Offset(
-                        pair.position.x * scaleFactor,
+                        pair.position.x * scaleFactor - 180,
                         pair.position.y * scaleFactor
                     )
                 }
