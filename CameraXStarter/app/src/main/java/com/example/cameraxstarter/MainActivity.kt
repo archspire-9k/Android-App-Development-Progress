@@ -16,6 +16,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.facemesh.FaceMeshDetection
 import com.google.mlkit.vision.facemesh.FaceMeshDetector
+import com.google.mlkit.vision.facemesh.FaceMeshDetectorOptions
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -52,9 +53,9 @@ import java.util.concurrent.Executors
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         defaultDetector = FaceMeshDetection.getClient(
-//            FaceMeshDetectorOptions.Builder()
-//                .setUseCase(FaceMeshDetectorOptions.BOUNDING_BOX_ONLY)
-//                .build()
+            FaceMeshDetectorOptions.Builder()
+                .setUseCase(FaceMeshDetectorOptions.BOUNDING_BOX_ONLY)
+                .build()
         )
     }
 

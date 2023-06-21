@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.facemesh.FaceMesh
 import com.google.mlkit.vision.facemesh.FaceMeshDetector
 import java.lang.Float.max
 import java.util.concurrent.ExecutorService
@@ -43,6 +44,7 @@ import kotlin.coroutines.suspendCoroutine
 @ExperimentalGetImage
 @Composable
 fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
+    var boundsList by remember { mutableStateOf(listOf<FaceMesh>()) }
     var bounds by remember { mutableStateOf(Rect(0, 0, 0, 0)) }
     var faceMeshpoints by remember {
         mutableStateOf(listOf(Offset(0f, 0f)))
@@ -82,6 +84,7 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                             .addOnSuccessListener { result ->
                                 // Task completed successfully
                                 if (result != null) {
+                                    boundsList = result
                                     for (faceMesh in result) {
                                         bounds = faceMesh.boundingBox
                                         faceMeshpoints = faceMesh.allPoints.map { pair ->
