@@ -29,13 +29,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.common.Triangle
 import com.google.mlkit.vision.facemesh.FaceMesh
 import com.google.mlkit.vision.facemesh.FaceMeshDetector
+import com.google.mlkit.vision.facemesh.FaceMeshPoint
 import java.lang.Float.max
 import java.util.concurrent.ExecutorService
 import kotlin.coroutines.resume
@@ -46,15 +47,14 @@ import kotlin.coroutines.suspendCoroutine
  */
 @ExperimentalGetImage
 @Composable
-fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
+fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector, context: Context) {
     var boundsList by remember { mutableStateOf(listOf<FaceMesh>()) }
     val screenHeightPx = remember { mutableStateOf(0f) }
-    val screenWidthPx  = remember { mutableStateOf(0f) }
+    val screenWidthPx = remember { mutableStateOf(0f) }
     var scaleFactor = 1f
     var scaleHeight: Float
     var scaleWidth: Float
     val lensFacing = CameraSelector.LENS_FACING_BACK
-    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val builder = Preview.Builder()
@@ -83,13 +83,6 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                                 // Task completed successfully
                                 if (result != null) {
                                     boundsList = result
-//                                    // Gets triangle info
-//                                    val triangles: List<Triangle<FaceMeshPoint>> =
-//                                        faceMesh.allTriangles
-//                                    for (triangle in triangles) {
-//                                        // 3 Points connecting to each other and representing a triangle area.
-//                                        val connectedPoints = triangle.allPoints
-//                                    }
                                 }
                                 imageProxy.close()
                             }.addOnFailureListener { e ->
@@ -137,26 +130,63 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
             for (boundPoints in boundsList) {
                 val detectedRegion = boundPoints.boundingBox
                 val detectedPointSet = boundPoints.allPoints
+                // Gets triangle info
+                val triangles: List<Triangle<FaceMeshPoint>> = boundPoints.allTriangles
+                Log.d("TRIANGLE", "${detectedPointSet.size}")
+                val faceMeshpoints = detectedPointSet.map { pair ->
+                    Offset(
+                        pair.position.x * scaleFactor - (480 * scaleFactor - screenWidthPx.value) / 2,
+                        pair.position.y * scaleFactor
+                    )
+                }
+
+                for(triangle in triangles) {
+                    val trianglePoints = triangle.allPoints.map { pair ->
+                        Offset(
+                            pair.position.x * scaleFactor - (480 * scaleFactor - screenWidthPx.value) / 2,
+                            pair.position.y * scaleFactor
+                        )
+                    }
+                    val point1 = trianglePoints[0]
+                    val point2 = trianglePoints[1]
+                    val point3 = trianglePoints[2]
+                    drawLine(
+                        color = Color.Cyan,
+                        start = Offset(point1.x, point1.y),
+                        end = Offset(point2.x, point2.y),
+                        strokeWidth = 4f
+                    )
+                    drawLine(
+                        color = Color.Cyan,
+                        start = Offset(point2.x, point2.y),
+                        end = Offset(point3.x, point3.y),
+                        strokeWidth = 4f
+                    )
+                    drawLine(
+                        color = Color.Cyan,
+                        start = Offset(point1.x, point1.y),
+                        end = Offset(point3.x, point3.y),
+                        strokeWidth = 4f
+                    )
+                }
+
                 drawRect(
                     color = Color.Red, topLeft = Offset(
-                        detectedRegion.left * scaleFactor - (480 * scaleFactor - screenWidthPx.value )/2, detectedRegion.top * scaleFactor
+                        detectedRegion.left * scaleFactor - (480 * scaleFactor - screenWidthPx.value) / 2,
+                        detectedRegion.top * scaleFactor
                     ), size = Size(
                         detectedRegion.width().toFloat() * scaleFactor,
                         detectedRegion.height().toFloat() * scaleFactor
                     ), style = Stroke(width = 2f)
                 )
-                val faceMeshpoints = detectedPointSet.map { pair ->
-                    Offset(
-                        pair.position.x * scaleFactor - (480 * scaleFactor - screenWidthPx.value )/2,
-                        pair.position.y * scaleFactor
-                    )
-                }
+
                 drawPoints(
                     points = faceMeshpoints,
                     pointMode = PointMode.Points,
                     color = Color.White,
                     strokeWidth = 4f
                 )
+
             }
 
         }
