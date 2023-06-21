@@ -14,7 +14,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,12 +41,15 @@ import java.util.concurrent.ExecutorService
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+/*
+    Only works in portrait mode so far since the readjustment formula takes the value of width directly
+ */
 @ExperimentalGetImage
 @Composable
 fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
     var boundsList by remember { mutableStateOf(listOf<FaceMesh>()) }
-    var screenHeightPx: Float
-    var screenWidthPx: Float
+    val screenHeightPx = remember { mutableStateOf(0f) }
+    val screenWidthPx  = remember { mutableStateOf(0f) }
     var scaleFactor = 1f
     var scaleHeight: Float
     var scaleWidth: Float
@@ -115,12 +117,11 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
         contentAlignment = Alignment.BottomCenter,
         modifier = Modifier
             .fillMaxSize()
-            .aspectRatio(9/16f)
             .onGloballyPositioned { coordinates ->
-                screenHeightPx = coordinates.size.height.toFloat()
-                screenWidthPx = coordinates.size.width.toFloat()
-                scaleHeight = screenHeightPx / 640
-                scaleWidth = screenWidthPx / 480
+                screenHeightPx.value = coordinates.size.height.toFloat()
+                screenWidthPx.value = coordinates.size.width.toFloat()
+                scaleHeight = screenHeightPx.value / 640
+                scaleWidth = screenWidthPx.value / 480
                 scaleFactor = max(scaleWidth, scaleHeight)
                 Log.d("RATIO", "Composable ratio $scaleHeight : $scaleWidth")
             }
@@ -138,7 +139,7 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                 val detectedPointSet = boundPoints.allPoints
                 drawRect(
                     color = Color.Red, topLeft = Offset(
-                        detectedRegion.left * scaleFactor, detectedRegion.top * scaleFactor
+                        detectedRegion.left * scaleFactor - (480 * scaleFactor - screenWidthPx.value )/2, detectedRegion.top * scaleFactor
                     ), size = Size(
                         detectedRegion.width().toFloat() * scaleFactor,
                         detectedRegion.height().toFloat() * scaleFactor
@@ -146,7 +147,7 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                 )
                 val faceMeshpoints = detectedPointSet.map { pair ->
                     Offset(
-                        pair.position.x * scaleFactor,
+                        pair.position.x * scaleFactor - (480 * scaleFactor - screenWidthPx.value )/2,
                         pair.position.y * scaleFactor
                     )
                 }
