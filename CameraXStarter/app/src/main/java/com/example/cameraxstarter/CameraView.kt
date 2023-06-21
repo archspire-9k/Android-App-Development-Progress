@@ -115,7 +115,7 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
         contentAlignment = Alignment.BottomCenter,
         modifier = Modifier
             .fillMaxSize()
-            .aspectRatio(3 / 4f)
+            .aspectRatio(9/16f)
             .onGloballyPositioned { coordinates ->
                 screenHeightPx = coordinates.size.height.toFloat()
                 screenWidthPx = coordinates.size.width.toFloat()
