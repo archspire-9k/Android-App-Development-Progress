@@ -51,14 +51,13 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
     var screenHeightPx: Float
     var screenWidthPx: Float
     var scaleFactor = 1f
-    var scaleHeight = 1f
-    var scaleWidth = 1f
+    var scaleHeight: Float
+    var scaleWidth: Float
     val lensFacing = CameraSelector.LENS_FACING_BACK
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val builder = Preview.Builder()
-//    val targetResolution = PreferenceUtils
     val preview = builder
         .setTargetAspectRatio(AspectRatio.RATIO_4_3)
         .build()
@@ -85,12 +84,10 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
                                 if (result != null) {
                                     for (faceMesh in result) {
                                         bounds = faceMesh.boundingBox
-//                                    Log.d("FAIL", "$bounds")
-                                        // Gets all points
                                         faceMeshpoints = faceMesh.allPoints.map { pair ->
                                             Offset(
-                                                pair.position.x * scaleHeight,
-                                                pair.position.y * scaleHeight
+                                                pair.position.x * scaleFactor,
+                                                pair.position.y * scaleFactor
                                             )
                                         }
 
@@ -131,8 +128,6 @@ fun CameraView(executor: ExecutorService, defaultDetector: FaceMeshDetector) {
         modifier = Modifier
             .fillMaxSize()
             .aspectRatio(3/4f)
-//            .height(with(LocalDensity.current) { 1080.toDp() })
-//            .width(with(LocalDensity.current) { 810.toDp() })
             .onGloballyPositioned { coordinates ->
                 screenHeightPx = coordinates.size.height.toFloat()
                 screenWidthPx = coordinates.size.width.toFloat()
