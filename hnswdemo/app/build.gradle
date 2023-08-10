@@ -32,7 +32,7 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
-    // https://mvnrepository.com/artifact/com.github.jelmerk/hnswlib-parent-pom
+     https://mvnrepository.com/artifact/com.github.jelmerk/hnswlib-parent-pom
     implementation("com.github.jelmerk:hnswlib-parent-pom:1.1.0")
 
     testImplementation 'junit:junit:4.13.2'
